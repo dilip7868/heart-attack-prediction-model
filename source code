@@ -1,0 +1,42 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report 
+
+# 1. Load the dataset
+df = pd.read_csv("heart.csv")
+
+# 2. Label Encode ONLY the actual categorical (text) columns
+le = LabelEncoder()
+categorical_cols = ["Sex", "ChestPainType", "ExerciseAngina", "RestingECG", "ST_Slope"]
+
+for col in categorical_cols:
+    df[col] = le.fit_transform(df[col])
+
+# 3. Scale continuous numeric columns using StandardScaler
+# This standardizes the scale of measurements (e.g., brings Cholesterol and Oldpeak to the same scale)
+scaler = StandardScaler()
+numeric_cols = ['Age', 'RestingBP', 'Cholesterol', 'MaxHR', 'Oldpeak']
+df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
+# 4. Separate features (X) and target variable (y)
+X = df.drop('HeartDisease', axis=1)
+y = df['HeartDisease']
+
+# 5. Split data into training and testing sets (random_state ensures identical splits each run)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 6. Initialize and train the Logistic Regression Model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# 7. Make predictions
+y_pred = model.predict(X_test)
+
+# 8. Evaluate the model
+print("\n--- Classification Report ---")
+print(classification_report(y_test, y_pred))
+
+acc = accuracy_score(y_test, y_pred)
+print(f"Accuracy Score: {acc:.4f}")
